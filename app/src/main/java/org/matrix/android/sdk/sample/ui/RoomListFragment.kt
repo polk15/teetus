@@ -75,9 +75,25 @@ class RoomListFragment : Fragment(), ToolbarConfigurable {
             memberships = Membership.activeMemberships()
         }
         // Then you can subscribe to livedata..
-        session.roomService().getRoomSummariesLive(roomSummariesQuery).observe(viewLifecycleOwner) {
-            // ... And refresh your adapter with the list. It will be automatically updated when an item of the list is changed.
-            updateRoomList(it)
+        session.roomService().run {
+            getRoomSummariesLive(roomSummariesQuery).observe(viewLifecycleOwner) {
+                // ... And refresh your adapter with the list. It will be automatically updated when an item of the list is changed.
+                updateRoomList(it)
+            }
+            views.inviteUserButton.setOnClickListener {
+                val otherUser = views.otherUserField.text.toString().trim()
+                lifecycleScope.launch {
+                   try {
+                       createDirectRoom(otherUser)
+                   }
+                   catch (failure: Throwable) {
+                       activity?.let {
+                           Toast.makeText(it, "Failure: $failure", Toast.LENGTH_SHORT).show()
+                       }
+                       return@launch
+                   }
+                }
+            }
         }
 
         // You can also listen to user. Here we listen to ourself to get our avatar

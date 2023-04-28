@@ -46,10 +46,36 @@
         android:id="@+id/roomSummaryList"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/inviteUserLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
+    <LinearLayout
+        android:id="@+id/inviteUserLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="5"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <EditText
+            android:id="@+id/otherUserField"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="5"
+            android:hint="Other user"
+            android:selectAllOnFocus="true" />
+
+        <Button
+            android:id="@+id/inviteUserButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:textColor="@color/dark_grey_two"
+            android:text="INVITE" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

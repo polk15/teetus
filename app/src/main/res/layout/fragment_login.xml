@@ -44,6 +44,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
         android:hint="Homeserver"
+        android:text="http://10.0.2.2:8008"
         android:imeActionLabel="Homeserver"
         android:imeOptions="actionDone"
         android:selectAllOnFocus="true"

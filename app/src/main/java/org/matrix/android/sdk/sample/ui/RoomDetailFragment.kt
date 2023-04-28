@@ -85,6 +85,7 @@ class RoomDetailFragment : Fragment(), Timeline.Listener, ToolbarConfigurable {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         configureToolbar(views.toolbar, displayBack = true)
+
         views.textComposer.setInputListener {
             // Sending message can be as simple as that.
             // Timeline will be automatically updated with local echo
@@ -116,6 +117,7 @@ class RoomDetailFragment : Fragment(), Timeline.Listener, ToolbarConfigurable {
         room = session.getRoom(roomId)
 
         lifecycleScope.launch {
+            session.roomService().joinRoom(roomId)
             room?.readService()?.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT)
         }
 

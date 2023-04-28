@@ -1,0 +1,141 @@
+Index: build.gradle
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/build.gradle b/build.gradle
+--- a/build.gradle	(revision ad87b08a6f823476dce514c4eddc46ee2b47ea5d)
++++ b/build.gradle	(date 1679345491992)
+@@ -7,7 +7,7 @@
+         maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+     }
+     dependencies {
+-        classpath 'com.android.tools.build:gradle:7.4.2'
++        classpath 'com.android.tools.build:gradle:7.3.1'
+         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+         // NOTE: Do not place your application dependencies here; they belong
+         // in the individual module build.gradle files
+Index: app/src/main/java/org/matrix/android/sdk/sample/ui/RoomDetailFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomDetailFragment.kt b/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomDetailFragment.kt
+--- a/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomDetailFragment.kt	(revision ad87b08a6f823476dce514c4eddc46ee2b47ea5d)
++++ b/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomDetailFragment.kt	(date 1679385207319)
+@@ -85,6 +85,7 @@
+     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+         super.onViewCreated(view, savedInstanceState)
+         configureToolbar(views.toolbar, displayBack = true)
++
+         views.textComposer.setInputListener {
+             // Sending message can be as simple as that.
+             // Timeline will be automatically updated with local echo
+@@ -116,6 +117,7 @@
+         room = session.getRoom(roomId)
+ 
+         lifecycleScope.launch {
++            session.roomService().joinRoom(roomId)
+             room?.readService()?.markAsRead(ReadService.MarkAsReadParams.READ_RECEIPT)
+         }
+ 
+Index: app/src/main/java/org/matrix/android/sdk/sample/ui/RoomListFragment.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomListFragment.kt b/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomListFragment.kt
+--- a/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomListFragment.kt	(revision ad87b08a6f823476dce514c4eddc46ee2b47ea5d)
++++ b/app/src/main/java/org/matrix/android/sdk/sample/ui/RoomListFragment.kt	(date 1679385428167)
+@@ -75,9 +75,25 @@
+             memberships = Membership.activeMemberships()
+         }
+         // Then you can subscribe to livedata..
+-        session.roomService().getRoomSummariesLive(roomSummariesQuery).observe(viewLifecycleOwner) {
+-            // ... And refresh your adapter with the list. It will be automatically updated when an item of the list is changed.
+-            updateRoomList(it)
++        session.roomService().run {
++            getRoomSummariesLive(roomSummariesQuery).observe(viewLifecycleOwner) {
++                // ... And refresh your adapter with the list. It will be automatically updated when an item of the list is changed.
++                updateRoomList(it)
++            }
++            views.inviteUserButton.setOnClickListener {
++                val otherUser = views.otherUserField.text.toString().trim()
++                lifecycleScope.launch {
++                   try {
++                       createDirectRoom(otherUser)
++                   }
++                   catch (failure: Throwable) {
++                       activity?.let {
++                           Toast.makeText(it, "Failure: $failure", Toast.LENGTH_SHORT).show()
++                       }
++                       return@launch
++                   }
++                }
++            }
+         }
+ 
+         // You can also listen to user. Here we listen to ourself to get our avatar
+Index: app/src/main/res/layout/fragment_login.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_login.xml b/app/src/main/res/layout/fragment_login.xml
+--- a/app/src/main/res/layout/fragment_login.xml	(revision ad87b08a6f823476dce514c4eddc46ee2b47ea5d)
++++ b/app/src/main/res/layout/fragment_login.xml	(date 1679382703383)
+@@ -44,6 +44,7 @@
+         android:layout_marginTop="8dp"
+         android:layout_marginEnd="24dp"
+         android:hint="Homeserver"
++        android:text="http://10.0.2.2:8008"
+         android:imeActionLabel="Homeserver"
+         android:imeOptions="actionDone"
+         android:selectAllOnFocus="true"
+Index: app/src/main/res/layout/fragment_room_list.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/res/layout/fragment_room_list.xml b/app/src/main/res/layout/fragment_room_list.xml
+--- a/app/src/main/res/layout/fragment_room_list.xml	(revision ad87b08a6f823476dce514c4eddc46ee2b47ea5d)
++++ b/app/src/main/res/layout/fragment_room_list.xml	(date 1679382531949)
+@@ -46,10 +46,36 @@
+         android:id="@+id/roomSummaryList"
+         android:layout_width="0dp"
+         android:layout_height="0dp"
+-        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintBottom_toTopOf="@id/inviteUserLayout"
+         app:layout_constraintEnd_toEndOf="parent"
+         app:layout_constraintStart_toStartOf="parent"
+         app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+ 
++    <LinearLayout
++        android:id="@+id/inviteUserLayout"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:orientation="horizontal"
++        android:weightSum="5"
++        app:layout_constraintBottom_toBottomOf="parent">
++
++        <EditText
++            android:id="@+id/otherUserField"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_margin="10dp"
++            android:layout_weight="5"
++            android:hint="Other user"
++            android:selectAllOnFocus="true" />
++
++        <Button
++            android:id="@+id/inviteUserButton"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_margin="10dp"
++            android:layout_weight="1"
++            android:textColor="@color/dark_grey_two"
++            android:text="INVITE" />
++    </LinearLayout>
+ 
+ </androidx.constraintlayout.widget.ConstraintLayout>
+\ No newline at end of file
